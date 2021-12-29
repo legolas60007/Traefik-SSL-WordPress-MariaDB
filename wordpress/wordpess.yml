@@ -1,0 +1,35 @@
+version: '3.1'
+
+services:
+
+  wordpress:
+    image: wordpress
+    restart: always
+    depends_on:
+      - database
+    networks:
+      - proxy
+    environment:
+      WORDPRESS_DB_PASSWORD: example
+    volumes:
+      - ./config/php.conf.uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+      - ./wp-app:/var/www/html # Full wordpress project
+    labels:
+      - traefik.rule=Host(`wordpress.sauron4you.com`) 
+      - traefik.tls=true 
+      - traefik.tls.certresolver=letsEncrypt 
+      - traefik.tls.domains[0].main=yourdomain.org
+  database:
+    image: mariadb
+    restart: always
+    networks:
+      - default
+    environment:
+      MYSQL_ROOT_PASSWORD: example
+    volumes:
+      - ./wp-data:/docker-entrypoint-initdb.d
+
+networks:
+  proxy:
+    external: true
+  default:
